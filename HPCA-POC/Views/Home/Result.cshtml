@@ -1,0 +1,15 @@
+﻿
+@{
+    ViewBag.Title = "Result";
+}
+@model HPCA_POC.Models.ResultModel
+<h2>Result</h2>
+
+@Html.TextAreaFor(model => model.Data, new  { style ="width:8000px;height:500px" })
+
+@using (Html.BeginForm("Index", "Index"))
+{
+ 
+    <button type="submit">Back</button>
+}
+
