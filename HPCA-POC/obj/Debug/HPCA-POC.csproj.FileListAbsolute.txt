@@ -65,3 +65,9 @@ E:\POC\HPCA-POC\HPCA-POC\bin\Microsoft.AI.Web.xml
 E:\POC\HPCA-POC\HPCA-POC\obj\Debug\HPCA-POC.csprojResolveAssemblyReference.cache
 E:\POC\HPCA-POC\HPCA-POC\obj\Debug\HPCA-POC.dll
 E:\POC\HPCA-POC\HPCA-POC\obj\Debug\HPCA-POC.pdb
+E:\POC\HPCA-POC\HPCA-POC\bin\Microsoft.IdentityModel.Logging.dll
+E:\POC\HPCA-POC\HPCA-POC\bin\Microsoft.IdentityModel.Tokens.dll
+E:\POC\HPCA-POC\HPCA-POC\bin\System.IdentityModel.Tokens.Jwt.dll
+E:\POC\HPCA-POC\HPCA-POC\bin\Microsoft.IdentityModel.Logging.xml
+E:\POC\HPCA-POC\HPCA-POC\bin\Microsoft.IdentityModel.Tokens.xml
+E:\POC\HPCA-POC\HPCA-POC\bin\System.IdentityModel.Tokens.Jwt.xml

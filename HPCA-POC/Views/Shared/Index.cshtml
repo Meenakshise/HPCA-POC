@@ -22,4 +22,13 @@
     <button type="submit">List Of Users Added to Network</button>
 }
 
- 
+<h2> Login  </h2>
+
+@using (Html.BeginForm("Login", "Index"))
+{
+    <table style="width:100%;">
+        <tr><td>@Html.Label("User Name") </td><td>&nbsp;</td><td>@Html.TextBoxFor(model => model.Email)</td></tr>
+        <tr><td>@Html.Label("Password") </td><td>&nbsp;</td><td>@Html.PasswordFor(model => model.Password)</td></tr>
+    </table>
+    <button type="submit">Login</button>
+}
