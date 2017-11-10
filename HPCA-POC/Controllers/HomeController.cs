@@ -15,7 +15,7 @@ namespace HPCA_POC.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page. about action method";
+            ViewBag.Message = "Your application description page.";
 
             return View();
         }
