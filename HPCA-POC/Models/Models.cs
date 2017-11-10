@@ -21,9 +21,22 @@ namespace HPCA_POC.Models
                 return "password";
             }
              
-        }
+        }           
+    }
 
-           
+    public class JWTToken
+    {
+        public string Issuer { get; set; }
+        public string GivenName { get; set; }
+        public string FirstName { get; set; }
+
+    }
+
+    public class Token
+    {
+        public string Token_Type { get; set; }
+        public string Access_Token { get; set; }
+        public string Refresh_Token { get; set; }
     }
 
     public class LoginModel
@@ -41,8 +54,17 @@ namespace HPCA_POC.Models
         }
     }
 
+    public class Response
+    {
+        public string Data { get; set; }
+
+        public int StatusCode { get; set; }
+    }
+
     public class ResultModel
     {
         public string Data { get; set; }
+
+        public string ResultUserData { get; set; }
     }
 }

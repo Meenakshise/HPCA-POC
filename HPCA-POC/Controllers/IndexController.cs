@@ -4,10 +4,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using HPCA_POC.Models;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
 namespace HPCA_POC.Controllers
@@ -42,24 +45,51 @@ namespace HPCA_POC.Controllers
 
         public ActionResult Login(UserModel model)
         {
+            var x509 = new X509Certificate2("E://publicrsa.cer");
             ResultModel objModel = new ResultModel();
             LoginModel loginModel = new LoginModel();
             loginModel.UserName = model.Email;
             loginModel.Password = model.Password;
-            var data = Authenticate(loginModel);
-            objModel.Data = data;
+            var response = Authenticate(loginModel);
+            objModel.Data = response.Data;
+            if(response.StatusCode == 200)
+            {
+                Token objToken = JsonConvert.DeserializeObject<Token>(response.Data);
+                var objPrinicipal = Validate(objToken.Access_Token);
+                if (objPrinicipal != null)
+                {
+                    objModel.ResultUserData = objPrinicipal.FindFirst(ClaimTypes.Upn).Value + " " + objPrinicipal.FindFirst(ClaimTypes.GivenName).Value + " " + objPrinicipal.FindFirst(ClaimTypes.Surname).Value;
+                }
+            }
+            
             return View(DataView, objModel);
         }
 
-        public void Validate(string jwtToken)
+        public UserModel ParseToken(ClaimsPrincipal objPrinicipal)
         {
-            var jwtHandler = new JwtSecurityTokenHandler();
-
+            UserModel objUserModel = new UserModel();
+            return objUserModel;
         }
 
-        public string Authenticate(LoginModel model)
+        public ClaimsPrincipal Validate(string jwtToken)
         {
-            string data = "";
+            var jwtHandler = new JwtSecurityTokenHandler();
+            var x509 = new X509Certificate2("E://publicrsa.cer");
+            var validationParameters = new TokenValidationParameters()
+            {
+                ValidateAudience = true,
+                IssuerSigningKey = new X509SecurityKey(x509),
+                ValidAudiences = new List<string> { "/PLATFORMSERVICES/DEMO" },
+                ValidIssuer = "http://auth-demo.systemc.com"
+            };
+            SecurityToken token = null;
+            ClaimsPrincipal principal = jwtHandler.ValidateToken(jwtToken, validationParameters, out token);
+            return principal;
+        }
+
+        public Response Authenticate(LoginModel model)
+        {
+            Response objRes = new Models.Response();
             using (var client = new HttpClient())
             {
                 var postData = new Dictionary<string, string> { { "data", JsonConvert.SerializeObject(model) } };
@@ -77,15 +107,16 @@ namespace HPCA_POC.Controllers
                 HttpResponseMessage response = client.SendAsync(request).Result;
                 if (response.IsSuccessStatusCode)
                 {
-                    data = response.Content.ReadAsStringAsync().Result;
+                    objRes.Data = response.Content.ReadAsStringAsync().Result;
                 }
                 else
                 {
-                    data = response.ReasonPhrase;
+                    objRes.Data = response.ReasonPhrase;
+                   
                 }
-                return data;
+                objRes.StatusCode = (int)response.StatusCode;
+                return objRes;
             }
-            return data;
         }
 
         public string CreateAndPostUsertoNetwork(UserModel model)
