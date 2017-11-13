@@ -89,7 +89,8 @@ namespace HPCA_POC.Controllers
         public ClaimsPrincipal Validate(string jwtToken)
         {
             var jwtHandler = new JwtSecurityTokenHandler();
-            var x509 = new X509Certificate2("E://publicrsa.cer");
+            string path = Server.MapPath("/");
+            var x509 = new X509Certificate2(path + "publicrsa.cer");
             var validationParameters = new TokenValidationParameters()
             {
                 ValidateAudience = true,
@@ -113,6 +114,7 @@ namespace HPCA_POC.Controllers
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("NetworkKey", NetworkKey);
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "users/" + model.Email);
+
                 HttpResponseMessage response = client.SendAsync(request).Result;
                 StatusCode = (int)response.StatusCode;
                 if (response.IsSuccessStatusCode)
@@ -152,6 +154,7 @@ namespace HPCA_POC.Controllers
                 objRes.StatusCode = (int)response.StatusCode;
                 return objRes;
             }
+
         }
         public Response Authenticate(LoginModel model)
         {
@@ -195,6 +198,7 @@ namespace HPCA_POC.Controllers
                 client.BaseAddress = new Uri(DevURI);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var u =  JsonConvert.SerializeObject(model);
                 client.DefaultRequestHeaders.Add("NetworkKey", NetworkKey);
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "users")
                 {
@@ -232,16 +236,16 @@ namespace HPCA_POC.Controllers
             }
             return data;
         }
-        public ActionResult ResetPassword(UserModel model)
+        public ActionResult ForgotPassword(UserModel model)
         {
             ResultModel objModel = new ResultModel();
             LoginModel loginModel = new LoginModel();
             loginModel.UserName = model.Email;
-            var data = ResetPasswordConfirmation(model);
+            var data = ForgotPasswordConfirmation(model);
             objModel.Data = data;
             return View(DataView, objModel);
         }
-        public string ResetPasswordConfirmation(UserModel model)
+        public string ForgotPasswordConfirmation(UserModel model)
         {
             string data = "";
             using (var client = new HttpClient())
@@ -272,5 +276,7 @@ namespace HPCA_POC.Controllers
                 return data;
             }
         }
+        
+       
     }
 }
