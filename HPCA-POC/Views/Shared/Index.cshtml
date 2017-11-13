@@ -42,3 +42,24 @@
     </table>
     <button type="submit">Reset Password</button>
 }
+
+
+<h2> ReSend the Email  </h2>
+
+@using (Html.BeginForm("ReSendEmail", "Index"))
+{
+    <table style="width:100%;">
+        <tr><td>@Html.Label("User Name") </td><td>&nbsp;</td><td>@Html.TextBoxFor(model => model.Email)</td></tr>
+    </table>
+    <button type="submit">Resend the Registration Email</button>
+}
+
+<h2> Current Status of the User  </h2>
+
+@using (Html.BeginForm("UserStatus", "Index"))
+{
+    <table style="width:100%;">
+        <tr><td>@Html.Label("User Name") </td><td>&nbsp;</td><td>@Html.TextBoxFor(model => model.Email)</td></tr>
+    </table>
+    <button type="submit">User's status in HPCA</button>
+}

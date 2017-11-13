@@ -37,6 +37,7 @@ namespace HPCA_POC.Models
         public string Token_Type { get; set; }
         public string Access_Token { get; set; }
         public string Refresh_Token { get; set; }
+        public string RedemptionCode { get; set; }
     }
 
     public class LoginModel

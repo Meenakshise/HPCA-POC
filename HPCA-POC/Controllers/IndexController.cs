@@ -45,7 +45,6 @@ namespace HPCA_POC.Controllers
 
         public ActionResult Login(UserModel model)
         {
-            var x509 = new X509Certificate2("E://HPCA-POC/publicrsa.cer");
             ResultModel objModel = new ResultModel();
             LoginModel loginModel = new LoginModel();
             loginModel.UserName = model.Email;
@@ -65,6 +64,22 @@ namespace HPCA_POC.Controllers
             return View(DataView, objModel);
         }
 
+        public ActionResult ReSendEmail(UserModel model)
+        {
+            ResultModel objModel = new ResultModel();
+            var response = ResendEmailtoUser(model);
+            objModel.Data = response.Data;
+            return View(DataView, objModel);
+        }
+
+        public ActionResult UserStatus(UserModel model)
+        {
+            ResultModel objModel = new ResultModel();
+            var response = CurrentStatusOfUser(model);
+            objModel.Data = response.Data;
+            return View(DataView, objModel);
+        }
+
         public UserModel ParseToken(ClaimsPrincipal objPrinicipal)
         {
             UserModel objUserModel = new UserModel();
@@ -74,7 +89,7 @@ namespace HPCA_POC.Controllers
         public ClaimsPrincipal Validate(string jwtToken)
         {
             var jwtHandler = new JwtSecurityTokenHandler();
-            var x509 = new X509Certificate2("E://HPCA-POC/publicrsa.cer");
+            var x509 = new X509Certificate2("E://publicrsa.cer");
             var validationParameters = new TokenValidationParameters()
             {
                 ValidateAudience = true,
@@ -87,6 +102,57 @@ namespace HPCA_POC.Controllers
             return principal;
         }
 
+        public Response CurrentStatusOfUser(UserModel model)
+        {
+            int StatusCode = 0;
+            Response objRes = new Models.Response();
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(DevURI);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("NetworkKey", NetworkKey);
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "users/" + model.Email);
+                HttpResponseMessage response = client.SendAsync(request).Result;
+                StatusCode = (int)response.StatusCode;
+                if (response.IsSuccessStatusCode)
+                {
+                    Token objToken = JsonConvert.DeserializeObject<Token>(response.Content.ReadAsStringAsync().Result);
+                    if (objToken != null && !string.IsNullOrEmpty(objToken.RedemptionCode))
+                        objRes.Data = "User registered in HPCA and an Email sent but the user is yet to set the password";
+                    else if (objToken != null && string.IsNullOrEmpty(objToken.RedemptionCode))
+                        objRes.Data = "User has set the password and user is ready to login";
+                }
+                else
+                {
+                    objRes.Data = response.ReasonPhrase;
+                }
+                objRes.StatusCode = (int)response.StatusCode;
+                return objRes;
+            }
+        }
+        public Response ResendEmailtoUser(UserModel model)
+        {
+            Response objRes = new Models.Response();
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(DevURI);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "users/" + model.Email + "/confirmation-email");
+                HttpResponseMessage response = client.SendAsync(request).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    objRes.Data = "Confirmation email resent to the user";
+                }
+                else
+                {
+                    objRes.Data = response.ReasonPhrase;
+                }
+                objRes.StatusCode = (int)response.StatusCode;
+                return objRes;
+            }
+        }
         public Response Authenticate(LoginModel model)
         {
             Response objRes = new Models.Response();
