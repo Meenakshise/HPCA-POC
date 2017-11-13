@@ -27,7 +27,7 @@ namespace HPCA_POC.Controllers
             return View();
         }
 
-        public  ActionResult ListOfUsers(UserModel model)
+        public ActionResult ListOfUsers(UserModel model)
         {
             ResultModel objModel = new ResultModel();
             var data = ListOfUsersAddedtoNetwork();
@@ -45,7 +45,7 @@ namespace HPCA_POC.Controllers
 
         public ActionResult Login(UserModel model)
         {
-            var x509 = new X509Certificate2("E://publicrsa.cer");
+            var x509 = new X509Certificate2("E://HPCA-POC/publicrsa.cer");
             ResultModel objModel = new ResultModel();
             LoginModel loginModel = new LoginModel();
             loginModel.UserName = model.Email;
@@ -61,7 +61,7 @@ namespace HPCA_POC.Controllers
                     objModel.ResultUserData = objPrinicipal.FindFirst(ClaimTypes.Upn).Value + " " + objPrinicipal.FindFirst(ClaimTypes.GivenName).Value + " " + objPrinicipal.FindFirst(ClaimTypes.Surname).Value;
                 }
             }
-            
+
             return View(DataView, objModel);
         }
 
@@ -74,7 +74,7 @@ namespace HPCA_POC.Controllers
         public ClaimsPrincipal Validate(string jwtToken)
         {
             var jwtHandler = new JwtSecurityTokenHandler();
-            var x509 = new X509Certificate2("E://publicrsa.cer");
+            var x509 = new X509Certificate2("E://HPCA-POC/publicrsa.cer");
             var validationParameters = new TokenValidationParameters()
             {
                 ValidateAudience = true,
@@ -112,7 +112,7 @@ namespace HPCA_POC.Controllers
                 else
                 {
                     objRes.Data = response.ReasonPhrase;
-                   
+
                 }
                 objRes.StatusCode = (int)response.StatusCode;
                 return objRes;
@@ -139,32 +139,72 @@ namespace HPCA_POC.Controllers
                 HttpResponseMessage response = client.SendAsync(request).Result;
                 if (response.IsSuccessStatusCode)
                 {
-                    data = "User " + response.ReasonPhrase + ( response.StatusCode.ToString() == "OK" ? " User already exists but has been enrolled into the network" : "");
+                    data = "User " + response.ReasonPhrase + (response.StatusCode.ToString() == "OK" ? " User already exists but has been enrolled into the network" : "");
                 }
                 else
                 {
                     data = response.ReasonPhrase;
                 }
                 return data;
-            }           
+            }
         }
-        public  string ListOfUsersAddedtoNetwork()
+        public string ListOfUsersAddedtoNetwork()
         {
             string data = "";
             using (var client = new HttpClient())
             {
                 client.BaseAddress = new Uri(DevURI);
-                
+
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("NetworkKey", NetworkKey);
                 HttpResponseMessage response = client.GetAsync("users").Result;
                 if (response.IsSuccessStatusCode)
                 {
-                      data =   response.Content.ReadAsStringAsync().Result;
-                }               
+                    data = response.Content.ReadAsStringAsync().Result;
+                }
             }
             return data;
+        }
+        public ActionResult ResetPassword(UserModel model)
+        {
+            ResultModel objModel = new ResultModel();
+            LoginModel loginModel = new LoginModel();
+            loginModel.UserName = model.Email;
+            var data = ResetPasswordConfirmation(model);
+            objModel.Data = data;
+            return View(DataView, objModel);
+        }
+        public string ResetPasswordConfirmation(UserModel model)
+        {
+            string data = "";
+            using (var client = new HttpClient())
+            {
+                {
+                    var postData = new Dictionary<string, string> { { "data", JsonConvert.SerializeObject(model.Email) } };
+                    HttpContent content = new FormUrlEncodedContent(postData);
+                    client.BaseAddress = new Uri(DevURI);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Add("NetworkKey", NetworkKey);
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "users/" + model.Email + "/password-reset-email")
+                    {
+                        Content = new StringContent(JsonConvert.SerializeObject(model.Email),
+                                                        Encoding.UTF8,
+                                                        "application/json")//CONTENT-TYPE header
+                    };
+                    HttpResponseMessage response = client.SendAsync(request).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        data = "User Password Reset  " + response.ReasonPhrase + (response.StatusCode.ToString() == " OK" ? "Not Registered user." : "");
+                    }
+                    else
+                    {
+                        data = response.ReasonPhrase;
+                    }
+                }
+                return data;
+            }
         }
     }
 }

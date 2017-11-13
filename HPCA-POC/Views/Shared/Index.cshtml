@@ -32,3 +32,13 @@
     </table>
     <button type="submit">Login</button>
 }
+
+<h2> Reset Password </h2>
+
+@using (Html.BeginForm("ResetPassword", "Index"))
+{
+    <table style="width:100%;">
+        <tr><td>@Html.Label("User Name") </td><td>&nbsp;</td><td>@Html.TextBoxFor(model => model.Email)</td></tr>
+    </table>
+    <button type="submit">Reset Password</button>
+}
