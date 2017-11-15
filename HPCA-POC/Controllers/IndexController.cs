@@ -156,7 +156,7 @@ namespace HPCA_POC.Controllers
         public ClaimsPrincipal Validate(string jwtToken)
         {
             var jwtHandler = new JwtSecurityTokenHandler();
-            string path = Server.MapPath("/");
+            string path = Server.MapPath("~/");
             var x509 = new X509Certificate2(path + "publicrsa.cer");
             var validationParameters = new TokenValidationParameters()
             {
