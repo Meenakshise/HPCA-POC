@@ -19,7 +19,15 @@ namespace HPCA_POC.Models
                 return "password";
             }
              
-        }           
+        }
+        public string Grant_Type_Ref
+        {
+            get
+            {
+                return "refresh_token";
+            }
+
+        }
     }
 
     public class JWTToken
@@ -64,5 +72,15 @@ namespace HPCA_POC.Models
         public string Data { get; set; }
 
         public string ResultUserData { get; set; }
+
+        public string refreshToken { get; set; }
+
+        public DateTime OldStartTime { get; set; }
+
+        public DateTime NewStartTime { get; set; }
+
+        public DateTime OldExpTime { get; set; }
+
+        public DateTime RefreshedExpTime { get; set; }
     }
 }

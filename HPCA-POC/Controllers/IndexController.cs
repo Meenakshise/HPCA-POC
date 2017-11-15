@@ -12,6 +12,7 @@ using System.Web.Mvc;
 using HPCA_POC.Models;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace HPCA_POC.Controllers
 {
@@ -19,6 +20,7 @@ namespace HPCA_POC.Controllers
     {
         string NetworkKey = "oAGpVeNR64waw77EDZ9zd05HgQZjhl6A.=.gKkA1zn4c1yDvv6dnbyUxQQlkm7sXc7y7O3pvwQ/f+7qz/tzipWQHqn9TBvrSXTqCXbG7PsBmBgMsl+DwRHftg==.=.";
         string DataView = "~/Views/Home/Result.cshtml";
+        string RefreshTokenView = "~/Views/Home/RefreshTokenView.cshtml";
         string DevURI = "https://www.moonshrub.com/hpca/";
         //Hellllloooooooooooo......
         // GET: Index
@@ -54,16 +56,81 @@ namespace HPCA_POC.Controllers
             if(response.StatusCode == 200)
             {
                 Token objToken = JsonConvert.DeserializeObject<Token>(response.Data);
+                objModel.refreshToken = objToken.Refresh_Token;
                 var objPrinicipal = Validate(objToken.Access_Token);
                 if (objPrinicipal != null)
                 {
                     objModel.ResultUserData = objPrinicipal.FindFirst(ClaimTypes.Upn).Value + " " + objPrinicipal.FindFirst(ClaimTypes.GivenName).Value + " " + objPrinicipal.FindFirst(ClaimTypes.Surname).Value;
+                    DateTime startTime = new DateTime(1970, 1, 1).AddSeconds(Convert.ToDouble(objPrinicipal.FindFirst(JwtRegisteredClaimNames.Nbf).Value));
+                    DateTime expiryTime = new DateTime(1970, 1, 1).AddSeconds(Convert.ToDouble(objPrinicipal.FindFirst(JwtRegisteredClaimNames.Exp).Value));
+                    objModel.OldStartTime = startTime;
+                    objModel.OldExpTime = expiryTime;
                 }
             }
 
             return View(DataView, objModel);
         }
+        public ActionResult RefreshToken(ResultModel resultModel)
+        {
+            ResultModel objModel = new ResultModel();
+            UserModel model = new UserModel();
+            var Json = JsonConvert.DeserializeObject<Token>(resultModel.Data);
+            var token = Json.Access_Token;
+            var refTok = Json.Refresh_Token;
+            var response = AuthenticateAfterLogin(refTok);
+            if (response.StatusCode == 200)
+            {
+                Token objToken = JsonConvert.DeserializeObject<Token>(response.Data);
+                objModel.refreshToken = objToken.Refresh_Token;
+                var objPrinicipal = Validate(objToken.Access_Token);
+                if (objPrinicipal != null)
+                {
+                    DateTime startTime = new DateTime(1970, 1, 1).AddSeconds(Convert.ToDouble(objPrinicipal.FindFirst(JwtRegisteredClaimNames.Nbf).Value));
+                    DateTime expiryTime = new DateTime(1970, 1, 1).AddSeconds(Convert.ToDouble(objPrinicipal.FindFirst(JwtRegisteredClaimNames.Exp).Value));
+                    objModel.NewStartTime = startTime;
+                    objModel.RefreshedExpTime = expiryTime;
+                }
+            }
 
+            return View(RefreshTokenView, objModel);
+        }
+
+        public Response AuthenticateAfterLogin(string refToken)
+        {
+            Response objRes = new Models.Response();
+            UserModel usrModel = new UserModel();
+            dynamic refresh = new JObject();
+            refresh.refresh_token = refToken;
+            refresh.grant_type = usrModel.Grant_Type_Ref;
+
+            using (var client = new HttpClient())
+            {
+                var postData = new Dictionary<string, string> { { "data", JsonConvert.SerializeObject(refresh) } };
+                HttpContent content = new FormUrlEncodedContent(postData);
+                client.BaseAddress = new Uri(DevURI);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("NetworkKey", NetworkKey);
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "oauth/token")
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(refresh),
+                                                    Encoding.UTF8,
+                                                    "application/json")//CONTENT-TYPE header
+                };
+                HttpResponseMessage response = client.SendAsync(request).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    objRes.Data = response.Content.ReadAsStringAsync().Result;
+                }
+                else
+                {
+                    objRes.Data = response.ReasonPhrase;
+
+                }
+                objRes.StatusCode = (int)response.StatusCode;
+                return objRes;
+            }
+        }
         public ActionResult ReSendEmail(UserModel model)
         {
             ResultModel objModel = new ResultModel();

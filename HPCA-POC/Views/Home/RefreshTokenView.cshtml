@@ -1,0 +1,15 @@
+﻿
+@{
+    ViewBag.Title = "RefreshTokenView";
+}
+@model HPCA_POC.Models.ResultModel
+<h2>Refresh Token View</h2>
+
+<p><b>Before Refresh Timings</b> - @Html.TextAreaFor(model => model.OldStartTime, new { style = "width:2000px;height:200px" })
+ @Html.TextAreaFor(model => model.OldExpTime, new { style = "width:2000px;height:200px" })
+    @Html.TextAreaFor(model => model.refreshToken, new { style = "width:2000px;height:200px" })
+    </p>
+<p><b>After Refresh Timings</b> - @Html.TextAreaFor(model => model.NewStartTime, new { style = "width:8000px;height:200px" })
+    @Html.TextAreaFor(model => model.RefreshedExpTime, new { style = "width:8000px;height:200px" })
+    @Html.TextAreaFor(model => model.refreshToken, new { style = "width:8000px;height:200px" })
+    </p>

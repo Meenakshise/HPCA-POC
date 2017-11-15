@@ -7,10 +7,20 @@
 
 @Html.TextAreaFor(model => model.Data, new  { style ="width:8000px;height:500px" })
 @Html.TextAreaFor(model => model.ResultUserData, new { style = "width:8000px;height:500px" })
-
 @using (Html.BeginForm("Index", "Index"))
 {
  
     <button type="submit">Back</button>
 }
 
+<h2>After Login Refresh</h2>
+
+@using (Html.BeginForm("RefreshToken", "Index"))
+{
+    @Html.HiddenFor(model => model.Data)
+    @Html.HiddenFor(model => model.ResultUserData)
+    @Html.HiddenFor(model => model.OldStartTime)
+    @Html.HiddenFor(model => model.OldExpTime)
+    @Html.HiddenFor(model => model.refreshToken)
+    <button type="submit">Refresh Token</button>
+}
